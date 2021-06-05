@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:trailapp/models/productData.dart';
-import 'package:trailapp/widgets/drawer.dart';
+import 'package:trailapp/widgets/themes.dart';
+import 'package:velocity_x/velocity_x.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -32,36 +33,104 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.0,
-        title: Text("Catalog App"),
+      body: SafeArea(
+        child: Container(
+          padding: Vx.m24,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ProductHeader(),
+              if (ProductModel.product != null &&
+                  ProductModel.product.isNotEmpty)
+                ProductList().expand()
+              else
+                Center(
+                  child: CircularProgressIndicator(),
+                )
+            ],
+          ),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: (ProductModel.product != null && ProductModel.product.isNotEmpty)
-            ? GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8),
-                itemBuilder: (context, index) {
-                  final item = ProductModel.product[index];
-                  return Card(
-                      clipBehavior: Clip.antiAlias,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      child: GridTile(
-                        child: Image.network(item.image),
-                        header: Text(item.name),
-                        footer: Text(item.price.toString()),
-                      ));
-                },
-                itemCount: ProductModel.product.length,
-              )
-            : Center(
-                child: CircularProgressIndicator(),
-              ),
-      ),
-      drawer: MyDrawer(),
     );
+  }
+}
+
+class ProductHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        "ProductCase".text.xl5.bold.color(MyTheme.darkBlueColor).make(),
+        "Trending Products".text.xl2.make(),
+      ],
+    );
+  }
+}
+
+class ProductList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+        itemCount: ProductModel.product.length,
+        itemBuilder: (context, index) {
+          final item = ProductModel.product[index];
+          return ProductItem(item: item);
+        });
+  }
+}
+
+class ProductItem extends StatelessWidget {
+  final Item item;
+
+  const ProductItem({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return VxBox(
+        child: Row(
+      children: [
+        ProductImage(image: item.image),
+        Expanded(
+            child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            item.name.text.lg.bold.color(MyTheme.darkBlueColor).make(),
+            item.description.text.color(Colors.black54).make(),
+            ButtonBar(
+              alignment: MainAxisAlignment.spaceBetween,
+              children: [
+                "\$${item.price}".text.bold.xl.make(),
+                ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all(MyTheme.darkBlueColor)),
+                    onPressed: () {},
+                    child: "Buy".text.make())
+              ],
+            )
+          ],
+        ))
+      ],
+    )).white.square(150).rounded.make().py12();
+  }
+}
+
+class ProductImage extends StatelessWidget {
+  final String image;
+
+  const ProductImage({required this.image});
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(image)
+        .box
+        .rounded
+        .p8
+        .color(MyTheme.creamColor)
+        .make()
+        .p16()
+        .wh40(context);
   }
 }
